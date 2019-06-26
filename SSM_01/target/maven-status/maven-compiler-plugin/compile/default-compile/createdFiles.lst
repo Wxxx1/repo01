@@ -1,0 +1,5 @@
+com\wx\domain\User.class
+com\wx\SSM_Dao\UserMapper.class
+com\wx\SSM_Service\UserService.class
+com\wx\SSM_Controller\UserConller.class
+com\wx\SSM_Service\SSM_ServiceImpl\UserServiceImpl.class

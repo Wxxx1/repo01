@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                         http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+                         http://www.springframework.org/schema/context
+                         http://www.springframework.org/schema/context/spring-context-3.1.xsd
+                         http://www.springframework.org/schema/aop
+                         https://www.springframework.org/schema/aop/spring-aop.xsd
+                         http://www.springframework.org/schema/tx
+                         http://www.springframework.org/schema/tx/spring-tx.xsd">
+    <!--注解扫描-->
+    <context:component-scan base-package="com.wx.*"/>
+
+    <!--   aop -->
+    <aop:aspectj-autoproxy/>
+
+    <!--加载配置文件-->
+    <context:property-placeholder location="classpath:JDBC.properties"/>
+
+    <!--配置数据源-->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="${c3p0.driverClass}"/>
+        <property name="jdbcUrl" value="${c3p0.jdbcUrl}"/>
+        <property name="user" value="${c3p0.user}"/>
+        <property name="password" value="${c3p0.password}"/>
+    </bean>
+
+    <!-- spring和MyBatis整合，通过spring来管理MyBatis的SqlSessionFactory会话工厂-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 指定数据库连接池-->
+        <property name="dataSource" ref="dataSource" />
+        <!--自动扫描mapper.xml-->
+        <property name="mapperLocations" value="classpath:mapper/*.xml"/>
+    </bean>
+
+    <!-- mapper代理类-->
+    <bean name="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.wx.SSM_Dao" />
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>
+
+    <!--事务管理-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+         配置通知
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="save*" propagation="REQUIRED"/>
+            <tx:method name="update*" propagation="REQUIRED"/>
+            <tx:method name="insert*" propagation="REQUIRED"/>
+            <tx:method name="delete*" propagation="REQUIRED"/>
+            <tx:method name="*" propagation="REQUIRED"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <!--    配置拦截service层-->
+    <aop:config>
+        <aop:advisor advice-ref="txAdvice" pointcut="execution(* com.wx.SSM_Service.*.*(..))"/>
+    </aop:config>
+
+</beans>
